@@ -31,7 +31,7 @@ func (this *EccSign) FromJson(data_str string) error {
 	return err
 }
 
-//生成ECC椭圆曲线密钥对
+// 生成ECC椭圆曲线密钥对
 func GenerateECCKeyString() (string, string, error) {
 
 	//生成密钥对
@@ -77,7 +77,7 @@ func GenerateECCKeyString() (string, string, error) {
 	return publish_str, private_str, nil
 }
 
-//取得ECC私钥
+// 取得ECC私钥
 func PrivateKeyFromString(private_str string) (*ecdsa.PrivateKey, error) {
 	//读取私钥
 
@@ -92,7 +92,7 @@ func PrivateKeyFromString(private_str string) (*ecdsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-//取得ECC公钥
+// 取得ECC公钥
 func PublicKeyFromString(publish_str string) (*ecdsa.PublicKey, error) {
 	//读取公钥
 	//pem解密
@@ -107,7 +107,7 @@ func PublicKeyFromString(publish_str string) (*ecdsa.PublicKey, error) {
 	return publicKey, nil
 }
 
-//对消息的散列值生成数字签名
+// 对消息的散列值生成数字签名
 func Sign(msg string, private_str string) (string, error) {
 	//取得私钥
 	privateKey, err := PrivateKeyFromString(private_str)
@@ -147,18 +147,18 @@ func Sign(msg string, private_str string) (string, error) {
 	return tmp_str, nil
 }
 
-//验证数字签名
-func VerifySign(msg string, sign string, publish_key_str string) bool {
+// 验证数字签名
+func VerifySign(msg string, sign string, publish_key_str string) (bool, error) {
 	//读取公钥
 	publicKey, err := PublicKeyFromString(publish_key_str)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	ecc_sign := EccSign{}
 	err = ecc_sign.FromJson(sign)
 	if err != nil {
-		return false
+		return false, err
 	}
 	//计算哈希值
 	hash := sha256.New()
@@ -171,5 +171,5 @@ func VerifySign(msg string, sign string, publish_key_str string) bool {
 	s.UnmarshalText([]byte(ecc_sign.Stext))
 
 	verify := ecdsa.Verify(publicKey, bytes, &r, &s)
-	return verify
+	return verify, nil
 }

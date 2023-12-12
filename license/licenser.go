@@ -1,6 +1,7 @@
 package license
 
 import (
+	"encoding/base64"
 	"errors"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 type LicenserUpdateCallback func()
 
 type Licenser struct {
+	key string //公钥
 }
 
 func MakeLicenser() *Licenser {
@@ -18,46 +20,71 @@ func MakeLicenser() *Licenser {
 	return licenser
 }
 
-func (_lic *Licenser) VerifySign(lic_data string, pub_key string) (*LicenserData, error) {
+func (_lic *Licenser) MakeNewKey() (string, string, error) {
 
-	license_data := &LicenserData{}
-
-	// 1. 解码licsense数据
-	err := license_data.FromJson(lic_data)
+	pub_key, pri_key, err := ecc_tool.GenerateECCKeyString()
 	if err != nil {
-		return nil, errors.New("格式出错")
+		return "", "", err
 	}
 
-	// 2. 检查数据...
-	err = _lic.verifySign(license_data, pub_key)
-	if err != nil {
-		return nil, err
-	}
+	encode_pub_key := _lic.encodeToString(pub_key)
 
-	return license_data, nil
+	encode_pri_key := _lic.encodeToString(pri_key)
+
+	return encode_pub_key, encode_pri_key, nil
 }
 
-// 检查数据...不回调..
-func (_lic *Licenser) verifySign(license_data *LicenserData, pub_key string) error {
+// 制做签名--base64
+func (_lic *Licenser) MakeSign(data string, encode_pri_key string) (string, error) {
 
-	// 5. 验证签名
-	text := license_data.ToString()
-	ret := _lic.eccVerifySign(text, license_data.Sign, pub_key)
-	if !ret {
-		return errors.New("验签名失败")
+	pri_key, err := _lic.decodeFromString(encode_pri_key)
+	if err != nil {
+		//解码私钥出错
+		return "", errors.New("VerifySign _lic.decodeFromString error:" + err.Error())
 	}
 
-	return nil
-}
+	//用私钥签名
+	sign_data, err := ecc_tool.Sign(data, pri_key)
+	if err != nil {
+		return "", errors.New("VerifySign ecc_tool.Sign error:" + err.Error())
+	}
 
-// 制做签名
-func (_lic *Licenser) MakeSign(data string, pri_key string) (string, error) {
-	return ecc_tool.Sign(data, pri_key)
+	//把签名，编码
+	encode_sign_data := _lic.encodeToString(sign_data)
+	return encode_sign_data, nil
 }
 
 // 效验签名
-func (_lic *Licenser) eccVerifySign(data string, sign string, pub_key string) bool {
-	return ecc_tool.VerifySign(data, sign, pub_key)
+func (_lic *Licenser) VerifySign(data string, sign_base64 string, pub_key_base64 string) (bool, error) {
+
+	// 解码公钥
+	pub_key, err := _lic.decodeFromString(pub_key_base64)
+	if err != nil {
+		return false, errors.New("VerifySign decodeFromString error:" + err.Error())
+	}
+
+	// 解码签名
+	sign, err := _lic.decodeFromString(sign_base64)
+	if err != nil {
+		return false, errors.New("VerifySign decodeFromString error:" + err.Error())
+	}
+	//验证签名
+	bret, err := ecc_tool.VerifySign(data, sign, pub_key)
+	if err != nil {
+		return false, errors.New("VerifySign ecc_tool.VerifySign error:" + err.Error())
+	}
+
+	return bret, nil
+}
+
+func (_lic *Licenser) encodeToString(data string) string {
+	encodedStr := base64.URLEncoding.EncodeToString([]byte(data))
+	return encodedStr
+}
+
+func (_lic *Licenser) decodeFromString(data string) (string, error) {
+	out_data, err := base64.URLEncoding.DecodeString(data)
+	return string(out_data), err
 }
 
 type DataItem struct {

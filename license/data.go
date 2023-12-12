@@ -2,10 +2,14 @@ package license
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
-type LicenserData struct {
+type LicenseData interface {
+	ToJson() (string, error)
+	FromJson(string) error
+}
+
+type LicenseDataEx struct {
 	AppName     string                 `bson:"appname" json:"appname"`         //程序名
 	AppCode     string                 `bson:"appcode" json:"appcode"`         //程序名
 	CompanyName string                 `bson:"companyname" json:"companyname"` //接受授权公司
@@ -15,34 +19,20 @@ type LicenserData struct {
 	MaxNum1     int64                  `bson:"maxnum1" json:"maxnum1"`         //最大数量
 	ExpireAt    int64                  `bson:"expire_at" json:"expire_at"`     //过期时间--毫秒
 	Desc        string                 `bson:"desc" json:"desc"`               //描述
-	Sign        string                 `bson:"sign" json:"sign"`               //签名字符串
-	PubKey      string                 `bson:"pub_key" json:"pub_key"`         //公钥
 	ExData      map[string]interface{} `bson:"ex_data" json:"ex_data"`         //其它数据
 	Authorizer  string                 `bson:"authorizer" json:"authorizer"`   //授权人--授予他人权力或许可的人或组织
 	CopyRight   string                 `bson:"copyright" json:"copyright"`     //版权所有人--版权复制
 	Maker       string                 `bson:"maker" json:"maker"`             //制做者
 }
 
-func MakeLicenserData() *LicenserData {
-
-	licenserData := &LicenserData{
+func MakeLicenseData() *LicenseDataEx {
+	licenserData := &LicenseDataEx{
 		ExData: map[string]interface{}{},
 	}
 	return licenserData
 }
 
-// 生成验签的字符串
-func (_data *LicenserData) ToString() string {
-
-	text := fmt.Sprintf("%s%s%s%s-%d%d-%s%s%s",
-		_data.AppName, _data.AppCode, _data.CompanyName, _data.HardSn,
-		_data.MaxNum, _data.ExpireAt,
-		_data.CopyRight, _data.Desc, _data.PubKey)
-
-	return text
-}
-
-func (_data *LicenserData) ToJson() (string, error) {
+func (_data *LicenseDataEx) ToJson() (string, error) {
 	b, err := json.Marshal(_data)
 	if err != nil {
 		return "", err
@@ -50,18 +40,8 @@ func (_data *LicenserData) ToJson() (string, error) {
 	return string(b), nil
 }
 
-func (_data *LicenserData) FromJson(data_str string) error {
+func (_data *LicenseDataEx) FromJson(data_str string) error {
 	data := []byte(data_str)
 	err := json.Unmarshal(data, _data)
 	return err
-}
-
-func (_data *LicenserData) InfoToString() string {
-	out_str := ""
-	out_str += "CompanyName:" + _data.CompanyName + "\r\n"
-	out_str += "AppName    :" + _data.AppName + "\r\n"
-	out_str += "AppCode    :" + _data.AppCode + "\r\n"
-	out_str += "MaxNum     :" + fmt.Sprintf("%d", _data.MaxNum) + "\r\n"
-	out_str += "ExpireAt   :" + UnixToTimeStr(_data.ExpireAt) + "\r\n"
-	return out_str
 }
