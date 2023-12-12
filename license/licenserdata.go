@@ -6,23 +6,27 @@ import (
 )
 
 type LicenserData struct {
-	AppName     string `bson:"appname" json:"appname"`         //程序名
-	AppCode     string `bson:"appcode" json:"appcode"`         //程序名
-	CompanyName string `bson:"companyname" json:"companyname"` //授权公司
-	HardSn      string `bson:"hardsn" json:"hardsn"`           //授权硬件id
-	MaxNum      int64  `bson:"maxnum" json:"maxnum"`           //最大数量
-	ExpireAt    int64  `bson:"expire_at" json:"expire_at"`     //过期时间签
-	Copyright   string `bson:"copyright" json:"copyright"`     //版权所有人
-	Desc        string `bson:"desc" json:"desc"`               //描述
-	Sign        string `bson:"sign" json:"sign"`               //签名字符串
-	PubKey      string `bson:"pub_key" json:"pub_key"`         //公钥
+	AppName     string                 `bson:"appname" json:"appname"`         //程序名
+	AppCode     string                 `bson:"appcode" json:"appcode"`         //程序名
+	CompanyName string                 `bson:"companyname" json:"companyname"` //接受授权公司
+	HardSn      string                 `bson:"hardsn" json:"hardsn"`           //授权硬件id
+	MaxNum      int64                  `bson:"maxnum" json:"maxnum"`           //最大数量
+	MaxNum0     int64                  `bson:"maxnum0" json:"maxnum0"`         //最大数量
+	MaxNum1     int64                  `bson:"maxnum1" json:"maxnum1"`         //最大数量
+	ExpireAt    int64                  `bson:"expire_at" json:"expire_at"`     //过期时间--毫秒
+	Desc        string                 `bson:"desc" json:"desc"`               //描述
+	Sign        string                 `bson:"sign" json:"sign"`               //签名字符串
+	PubKey      string                 `bson:"pub_key" json:"pub_key"`         //公钥
+	ExData      map[string]interface{} `bson:"ex_data" json:"ex_data"`         //其它数据
+	Authorizer  string                 `bson:"authorizer" json:"authorizer"`   //授权人--授予他人权力或许可的人或组织
+	CopyRight   string                 `bson:"copyright" json:"copyright"`     //版权所有人--版权复制
+	Maker       string                 `bson:"maker" json:"maker"`             //制做者
 }
 
-func MakeLicenserData(appcode, hardsn string) *LicenserData {
+func MakeLicenserData() *LicenserData {
 
 	licenserData := &LicenserData{
-		AppCode: appcode,
-		HardSn:  hardsn,
+		ExData: map[string]interface{}{},
 	}
 	return licenserData
 }
@@ -33,7 +37,7 @@ func (_data *LicenserData) ToString() string {
 	text := fmt.Sprintf("%s%s%s%s-%d%d-%s%s%s",
 		_data.AppName, _data.AppCode, _data.CompanyName, _data.HardSn,
 		_data.MaxNum, _data.ExpireAt,
-		_data.Copyright, _data.Desc, _data.PubKey)
+		_data.CopyRight, _data.Desc, _data.PubKey)
 
 	return text
 }

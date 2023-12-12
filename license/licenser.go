@@ -18,7 +18,7 @@ func MakeLicenser() *Licenser {
 	return licenser
 }
 
-func (_lic *Licenser) DecodeData(lic_data string, pub_key string) (*LicenserData, error) {
+func (_lic *Licenser) VerifySign(lic_data string, pub_key string) (*LicenserData, error) {
 
 	license_data := &LicenserData{}
 
@@ -29,7 +29,7 @@ func (_lic *Licenser) DecodeData(lic_data string, pub_key string) (*LicenserData
 	}
 
 	// 2. 检查数据...
-	err = _lic.decodeData(license_data, pub_key)
+	err = _lic.verifySign(license_data, pub_key)
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +38,11 @@ func (_lic *Licenser) DecodeData(lic_data string, pub_key string) (*LicenserData
 }
 
 // 检查数据...不回调..
-func (_lic *Licenser) decodeData(license_data *LicenserData, pub_key string) error {
+func (_lic *Licenser) verifySign(license_data *LicenserData, pub_key string) error {
 
 	// 5. 验证签名
 	text := license_data.ToString()
-	ret := _lic.EccVerifySign(text, license_data.Sign, pub_key)
+	ret := _lic.eccVerifySign(text, license_data.Sign, pub_key)
 	if !ret {
 		return errors.New("验签名失败")
 	}
@@ -56,7 +56,7 @@ func (_lic *Licenser) MakeSign(data string, pri_key string) (string, error) {
 }
 
 // 效验签名
-func (_lic *Licenser) EccVerifySign(data string, sign string, pub_key string) bool {
+func (_lic *Licenser) eccVerifySign(data string, sign string, pub_key string) bool {
 	return ecc_tool.VerifySign(data, sign, pub_key)
 }
 

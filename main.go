@@ -26,20 +26,17 @@ func test2() {
 
 	for i := 0; i < 10000; i++ {
 
-		appName := RandomString(10)
-		appCode := RandomString(10)
-		hardsn := RandomString(32)
-		CompanyName := RandomString(32)
-		Copyright := RandomString(32)
-		maxNum := rand.Int63()
-
 		licenser := license.MakeLicenser()
-		lic_data := license.MakeLicenserData(appCode, hardsn)
+		lic_data := license.MakeLicenserData()
 
-		lic_data.AppName = appName
-		lic_data.CompanyName = CompanyName
-		lic_data.MaxNum = maxNum
-		lic_data.Copyright = Copyright
+		lic_data.AppCode = RandomString(10)
+		lic_data.PubKey = pub_key
+		lic_data.HardSn = RandomString(10)
+		lic_data.AppName = RandomString(10)
+		lic_data.CompanyName = RandomString(32)
+		lic_data.MaxNum = rand.Int63()
+		lic_data.CopyRight = RandomString(32)
+		lic_data.ExData["name"] = RandomString(6)
 
 		lic_data_str := lic_data.ToString()
 		//fmt.Println("lic_data_str --> ", lic_data_str)
@@ -57,12 +54,13 @@ func test2() {
 				continue
 			}
 
-			dec_data, err := licenser.DecodeData(lic_data_str111, pub_key)
+			_, err := licenser.VerifySign(lic_data_str111, pub_key)
 			if err != nil {
-				fmt.Println("解码失败:", err.Error())
+				fmt.Println("验证验名失败:", err.Error())
 			} else {
-				fmt.Println("解码成功: ", i)
-				fmt.Println(dec_data.InfoToString())
+				fmt.Println("验证验名成功: ", i)
+				fmt.Println(lic_data_str111)
+				//fmt.Println(dec_data.InfoToString())
 			}
 		}
 	}
